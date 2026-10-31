@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 5s
+
+# Metrics pushed over OTLP (lab pipelines) land via --web.enable-otlp-receiver.
+otlp:
+  promote_resource_attributes: [tenant, deployment.environment.name]
+
+scrape_configs:
+  # Collector self-metrics (service.telemetry on :8888). DNS SD picks up every
+  # replica of a service, which is how lab 04's gateways are all scraped.
+  - job_name: otelcol-self
+    dns_sd_configs:
+      - names: [otelcol, agent, gateway]
+        type: A
+        port: 8888
+        refresh_interval: 5s
+    relabel_configs:
+      - source_labels: [__meta_dns_name]
+        target_label: role

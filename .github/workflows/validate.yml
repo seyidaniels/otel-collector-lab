@@ -1,0 +1,32 @@
+name: validate
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Stubs (configs starting with "# STUB") are skipped, so this passes on
+      # main and checks every attempted config on solutions.
+      - run: SKIP_STUBS=1 make validate-all
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run every solved lab end to end
+        run: |
+          rc=0
+          for dir in labs/*/; do
+            dir=${dir%/}; lab=$(basename "$dir" | cut -d- -f1)
+            [[ -f $dir/verify.sh ]] || continue
+            if grep -lq '^# STUB' "$dir"/*.yaml 2>/dev/null; then echo "skip $dir (stub)"; continue; fi
+            echo "::group::lab $lab"
+            make run LAB=$lab || rc=1
+            echo "::endgroup::"
+          done
+          exit $rc

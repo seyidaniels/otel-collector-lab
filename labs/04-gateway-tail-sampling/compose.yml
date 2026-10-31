@@ -1,0 +1,28 @@
+name: lab-04
+
+services:
+  # Tier 1: one agent. Apps send here; it must keep each trace on one gateway.
+  agent:
+    image: ${OTELCOL_IMAGE}
+    command: ["--config=/etc/otelcol/agent.yaml"]
+    volumes:
+      - ./agent.yaml:/etc/otelcol/agent.yaml:ro
+    ports:
+      - "4317:4317"
+      - "8888:8888"   # agent self-metrics
+    depends_on: [gateway]
+
+  # Tier 2: three identical gateways behind one DNS name ("gateway").
+  # Their self-metrics are scraped by Prometheus (role="gateway").
+  gateway:
+    image: ${OTELCOL_IMAGE}
+    command: ["--config=/etc/otelcol/gateway.yaml"]
+    volumes:
+      - ./gateway.yaml:/etc/otelcol/gateway.yaml:ro
+    deploy:
+      replicas: 3
+
+networks:
+  default:
+    name: otel-lab
+    external: true

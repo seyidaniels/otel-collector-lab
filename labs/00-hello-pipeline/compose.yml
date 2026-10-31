@@ -1,0 +1,17 @@
+name: lab-00
+
+services:
+  otelcol:
+    image: ${OTELCOL_IMAGE}
+    command: ["--config=/etc/otelcol/collector.yaml"]
+    volumes:
+      - ./collector.yaml:/etc/otelcol/collector.yaml:ro
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8888:8888"   # collector self-metrics (what verify.sh reads)
+
+networks:
+  default:
+    name: otel-lab
+    external: true

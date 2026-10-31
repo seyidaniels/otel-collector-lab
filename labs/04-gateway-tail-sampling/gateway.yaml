@@ -1,0 +1,29 @@
+# STUB: delete this line when you start. The spec is in README.md in this folder.
+# `make validate LAB=NN` checks it parses; `make run LAB=NN` grades it.
+
+# Tier 2: one of three identical gateways.
+receivers:
+  # TODO: otlp on 0.0.0.0:4317
+
+processors:
+  # TODO: memory_limiter
+  # TODO: resource: gateway.id = ${env:HOSTNAME}  (block style YAML!)
+  # TODO: tail_sampling: errors, latency > 500ms, probabilistic 10%; decision_wait ~5s
+  # TODO: batch
+
+exporters:
+  # TODO: Jaeger
+
+service:
+  # Keep this block as is: the grader reads these self-metrics on :8888.
+  telemetry:
+    metrics:
+      level: detailed
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: 0.0.0.0
+                port: 8888
+  pipelines:
+    # TODO: traces pipeline
