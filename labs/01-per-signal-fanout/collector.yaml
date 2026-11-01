@@ -1,17 +1,36 @@
-# STUB: delete this line when you start. The spec is in README.md in this folder.
 # `make validate LAB=NN` checks it parses; `make run LAB=NN` grades it.
 
 receivers:
-  # TODO: otlp (as in lab 00)
+  # OTLP accepts gRPC and HTTP.
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
 
 processors:
-  # TODO: memory_limiter, batch
+  # memory_limiter goes first; batch goes last before exporters.
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 400
+  batch:
+
 
 exporters:
-  # TODO: traces → Jaeger at jaeger:4317 (OTLP gRPC, insecure)
-  # TODO: traces → a second exporter too (fan-out)
-  # TODO: metrics → Prometheus OTLP: http://prometheus:9090/api/v1/otlp/v1/metrics
-  # TODO: logs → file at /out/logs.jsonl
+  # Explicitly configure and add debug to each pipeline.
+  debug:
+    verbosity: detailed
+  otlp/jaeger:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
+  otlp/prometheus:
+    endpoint:  http://prometheus:9090
+    tls:
+      insecure: true
+  file:
+    path: /out/logs.jsonl
 
 service:
   # Keep this block as is: the grader reads these self-metrics on :8888.
@@ -25,4 +44,16 @@ service:
                 host: 0.0.0.0
                 port: 8888
   pipelines:
-    # TODO: traces, metrics and logs pipelines, each with its own destination
+    # Wire receivers → processors → exporters for each signal.
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlp/jaeger, debug]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [file, debug]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlp/prometheus, debug]
