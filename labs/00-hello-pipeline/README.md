@@ -26,6 +26,7 @@ make logs LAB=00         # debug exporter output appears here
 ## Hints
 - [otlp receiver](https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/otlpreceiver) · [memory_limiter](https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/memorylimiterprocessor) · [batch](https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/batchprocessor) · [debug exporter](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/debugexporter)
 - Paste your config into [OTelBin](https://www.otelbin.io/) to see the pipeline graph.
+- Components are not added to pipelines automatically. Define each receiver, processor and exporter, then list it in `service.pipelines`; component defaults only apply after the component is configured.
 - A component that is defined but not used in any pipeline is ignored without warning. A component used in a pipeline but never defined is a startup error.
 
 ## Break it

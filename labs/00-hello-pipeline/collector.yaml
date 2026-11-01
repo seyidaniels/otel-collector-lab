@@ -1,15 +1,26 @@
-# STUB: delete this line when you start. The spec is in README.md in this folder.
 # `make validate LAB=NN` checks it parses; `make run LAB=NN` grades it.
 
 receivers:
-  # TODO: otlp, gRPC on 0.0.0.0:4317 and HTTP on 0.0.0.0:4318
+  # OTLP accepts gRPC and HTTP.
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
 
 processors:
-  # TODO: memory_limiter (first in every pipeline)
-  # TODO: batch (last before exporters)
+  # memory_limiter goes first; batch goes last before exporters.
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 400
+  batch:
+
 
 exporters:
-  # TODO: debug
+  # Explicitly configure and add debug to each pipeline.
+  debug:
+    verbosity: detailed
 
 service:
   # Keep this block as is: the grader reads these self-metrics on :8888.
@@ -23,4 +34,16 @@ service:
                 host: 0.0.0.0
                 port: 8888
   pipelines:
-    # TODO: wire receivers → processors → exporters per signal
+    # Wire receivers → processors → exporters for each signal.
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug]
